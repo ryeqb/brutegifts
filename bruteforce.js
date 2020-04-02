@@ -10,16 +10,10 @@ const webhookToken = '';
 const url = `https://discordapp.com/api/webhooks/${webhookId}/${webhookToken}`;
 
 function sendMessage(message){
-
-	const data = {
-		content: message
-	}
-
-	request.post({url: url, form: data}, (err, res, body) => {
+	request.post({url: url, form: {content: message}}, (err, res, body) => {
 		if(err) throw err;
 	});
 }
-
 
 function gen(length) {
    let result = '';
@@ -30,23 +24,26 @@ function gen(length) {
    return result;
 }
 
-function validate() {
+function validate(){
 	setInterval(() => {
-		var code = gen(giftLength);
-		let url = `https://discordapp.com/api/v6/entitlements/gift-codes/${code}?with_application=true&with_subscription_plan=true`
 		if(index == amount) return process.exit();
-		request(url, (error, response, body) => {
-			let json = JSON.parse(body);
-			if(json.message !== "Unknown Gift Code"){
-				sendMessage(`[ ${index} ] Successfully breached gift code! [ ${code} ] - ${url}`);
-				fs.appendFile(path, `[ ${index} ] Successfully breached gift code! [ ${code} ] - ${url}`, (err) => {
-					if (err) throw err;
-				});
-			}
-			console.log(`[ ${index} ] ` + json.message + ` ( ${code} )`);
+
+		var code = gen(giftLength);
+		let apiUrl = `https://discordapp.com/api/v6/entitlements/gift-codes/${code}?with_application=true&with_subscription_plan=true`;
+
+		console.log(`[ ${index} ] Validating giftcode... ( ${code} ) -> `);
+
+		request(apiUrl, (err, res, body) => {
+			if(err) throw err;
+
+			console.log(`(${body})\n`);
+			fs.appendFile(path, `[ ${index} ] ( ${code} ) -> (${body})\n\r`, (err) => {
+				if(err) throw err;
+			});
 		});
 		index++;
 	}, timeout);
 }
 
 validate();
+//sendMessage(`Starting to validate ${amount} generated giftcodes! <@153216541725294592>`);
